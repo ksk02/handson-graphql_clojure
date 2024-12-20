@@ -1,10 +1,33 @@
 {:duct.profile/base
- {:duct.core/project-ns clojure-graphql}
+ {:duct.core/project-ns  aqoursql
 
- :duct.profile/dev   #duct/include "dev"
+  :duct.server/pedestal
+  {:base-service #ig/ref :aqoursql.graphql/service
+   :service #:io.pedestal.http{:type :jetty
+                               :join? true
+                               :host #duct/env "SERVER_HOST"
+                               :port #duct/env ["SERVER_PORT" Int :or 8888]}}
+
+  :aqoursql.graphql/schema
+  {:path "aqoursql/schema.graphql"}
+
+  :aqoursql.graphql/service
+  {:schema #ig/ref :aqoursql.graphql/schema
+   :options {:api-path "/graphql"
+             :subscriptions-path "/graphql-ws"
+             :ide-path "/"
+             :asset-path "/assets/graphiql"
+             :app-context {:db #ig/ref :duct.database/sql}
+             :env :prod}}}
+
+ :duct.profile/dev #duct/include "dev"
+ :duct.profile/test #duct/include "test"
  :duct.profile/local #duct/include "local"
- :duct.profile/prod  {}
+ :duct.profile/prod {}
 
- :duct.module/logging {}
+ :duct.module/cambium {}
+
  :duct.module/sql
- {}}
+ {:database-url #duct/env "DATABASE_URL"}
+
+ :duct.module/pedestal {}}
